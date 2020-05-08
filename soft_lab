@@ -1,0 +1,25 @@
+function [ f_hat ] = soft_lab( c,X,Y )
+
+N = size(c,1);
+M = size(Y,2);
+L = size(X,1);
+ker = struct('type','gauss');
+ker.width = 0.5; %%%% 
+K = kernel(ker,c',X'); %%% 
+%%% K: N*L matrix.
+k = sum(K')';
+%%% k: N*1 vector
+W = zeros(N,L);
+%%% weight coefficient
+for i=1:N
+    for j = 1:L
+        W(i,j)=K(i,j)/k(i);
+    end
+end
+
+f_hat = zeros(N,M);
+for i=1:N
+    for j = 1:M
+        f_hat(i,j)=W(i,:)*Y(:,j);
+    end
+end
