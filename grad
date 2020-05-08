@@ -1,0 +1,28 @@
+function [ delta_w ] = grad( x,y,p,w,r_mq,lambda_m,s,L,U,J,mu,mu1,gamma )
+%GRAD
+d = size(x,2);
+% L = size(y,1);
+% U = size(x,1)-L;
+M = size(p,2);
+
+delta_w = zeros(d,M);
+for j=1:M
+    if s(j)==1
+        for i=1:L
+            delta_w(:,j) = delta_w(:,j)+y(i,j)*lambda_m(j)*(-(J/L)*(1-p(i,j))*x(i,:)');
+        end
+    end
+    for i=(L+1):(L+U)
+  
+        delta_w(:,j) = delta_w(:,j)+mu*lambda_m(j)*(J/U)*(-1*(1+log(p(i,j)))*p(i,j)*(1-p(i,j))*x(i,:)'); 
+        delta_w(:,j) = delta_w(:,j)+mu*lambda_m(j)*(J/U)*(1*(1+log(1-p(i,j)))*p(i,j)*(1-p(i,j))*x(i,:)');
+    end
+    delta_w(:,j) = delta_w(:,j)+gamma*w(:,j);
+    for jj = 1:M
+        delta_w(:,j) = delta_w(:,j)-mu1*abs(r_mq(j,jj))*(w(:,j)-sign(r_mq(j,jj))*w(:,jj));
+    end
+end
+
+
+end
+
