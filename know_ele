@@ -1,0 +1,15 @@
+function [ II ] = know_ele( Y_ini )
+%% KNOW_ELE 
+
+
+[N,M,J] = size(Y_ini);
+II = zeros(N,M,J);
+for j = 1:J
+    for a = 1:N
+        for b = 1:M
+            if Y_ini(a,b,j)~=0
+                II(a,b,j)=1;
+            end
+        end
+    end
+end
