@@ -1,0 +1,10 @@
+function [ r_mq ] = corr_coe( f_hat )
+
+
+M = size(f_hat,2);
+r_mq = zeros(M,M);
+for i = 1:M
+    for j = 1:M
+        r_mq(i,j)=(f_hat(:,i)'*f_hat(:,j))/(norm(f_hat(:,i))*norm(f_hat(:,j)));
+    end
+end
