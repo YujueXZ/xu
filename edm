@@ -1,0 +1,110 @@
+function [ Y_hat ] = EDM( Y_ini,C,r,max_iter,alpha,v )
+
+[N,M,J] = size(Y_ini);
+D = 0.5*(C+eye(J,J));
+A_old = rand(N,r,J); 
+B_old = rand(r,M,J);
+Y_old = Y_ini; 
+
+%%alpha ; 
+II = know_ele(Y_ini);
+
+
+A_new = zeros(N,r,J);
+
+A_mid = diff_coop(A_old,C); 
+for j = 1:J
+    
+    A_new(:,:,j) = A_mid(:,:,j)-alpha*(A_old(:,:,j)-Y_old(:,:,j)*B_old(:,:,j)');
+
+    B_mid(:,:,j) = inv(A_new(:,:,j)'*A_new(:,:,j))*A_new(:,:,j)'*Y_old(:,:,j);
+end
+
+B_new = diff_coop(B_mid,C);
+
+Y_hat = zeros(N,M,J);
+for j = 1:J
+    Y_hat(:,:,j) = A_new(:,:,j)*B_new(:,:,j)+II(:,:,j).*(Y_ini(:,:,j)-A_new(:,:,j)*B_new(:,:,j));
+end
+Y_hat = normal(Y_hat);
+
+A_mid = A_new;
+B_mid = B_new;
+Y_mid = Y_hat;
+
+%%
+for ii = 1:max_iter
+    A_mid = diff_coop_str(A_mid,A_old,C,D);
+    for j = 1:J
+        
+        A_new(:,:,j) = A_new(:,:,j)+A_mid(:,:,j)-alpha*(A_new(:,:,j)-A_old(:,:,j)-Y_hat(:,:,j)*B_new(:,:,j)'+Y_old(:,:,j)*B_old(:,:,j)');
+        B_mid(:,:,j) = inv(A_new(:,:,j)'*A_new(:,:,j))*A_new(:,:,j)'*Y_hat(:,:,j);
+    end
+    B_new = diff_coop(B_mid,C);
+    for j = 1:J
+        Y_hat(:,:,j) = A_new(:,:,j)*B_new(:,:,j)+II(:,:,j).*(Y_ini(:,:,j)-A_new(:,:,j)*B_new(:,:,j));
+    end
+    % 
+    A_old = A_mid;
+    B_old = B_mid;
+    Y_old = Y_mid;
+    A_mid = A_new;
+    B_mid = B_new;
+    Y_hat = normal(Y_hat);
+    II = know_ele(Y_ini);
+    II = update_w(II,v,ii,J);
+end
+
+
+function [ II ] = know_ele( Y_ini )
+%% KNOW_ELE 
+
+
+[N,M,J] = size(Y_ini);
+II = zeros(N,M,J);
+for j = 1:J
+    for a = 1:N
+        for b = 1:M
+            if Y_ini(a,b,j)~=0
+                II(a,b,j)=1;
+            end
+        end
+    end
+end
+
+
+
+function [Y_n]=normal(Y)
+%% 
+[N,M,J] = size(Y);
+Y_n = Y;
+for j = 1:J
+    for a = 1:N
+        for b = 1:M
+            if Y(a,b,j)>1
+                Y_n(a,b,j)=1;
+            end
+            if Y(a,b,j)<-1
+                Y_n(a,b,j)=-1;
+            end
+        end
+    end
+end
+
+function [A_n]=diff_coop_str(A,A_old,C,D)
+%% 
+[N,M,J] = size(A);
+A_n = zeros(N,M,J);
+for j = 1:J
+    for jj = 1:J
+        A_n(:,:,j) = A_n(:,:,j)+C(j,jj)*A(:,:,jj)-D(j,jj)*A_old(:,:,jj);
+    end
+end
+
+function [II_n] = update_w(II,v,ii,J)
+%% 
+%%% 
+II_n = II;
+for j = 1:J
+    II_n(:,:,j) = exp(-v*ii)*II(:,:,j);
+end
