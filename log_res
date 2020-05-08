@@ -1,0 +1,9 @@
+function [ p ] = log_res( x,y,w )
+
+[NN,M] = size(y);
+p = zeros(NN,M);
+for i = 1:NN
+    for j = 1:M
+        p(i,j) = 1/(1+exp(-y(i,j)*(x(i,:)*w(:,j))));
+    end
+end
