@@ -1,0 +1,11 @@
+function [ w_new ] = diff_coop( w,C )
+
+
+[d,M,J] = size(w);
+
+w_new = zeros(d,M,J);
+for j = 1:J
+    for jj = 1:J
+        w_new(:,:,j)=w_new(:,:,j)+C(j,jj)*w(:,:,jj);
+    end
+end
