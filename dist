@@ -1,0 +1,42 @@
+load data.mat
+load para.mat
+load network.mat
+
+    u = zeros(D,M,J);
+    p = zeros(L+U,M,J);
+    for j = 1:J
+        p(:,:,j) = log_res(x(:,:,j),y(:,:,j),u(:,:,j));
+    end
+    delta_u = zeros(D,M,J);
+    f_hat = zeros(N_anc,M,J);
+    
+    for j = 1:J
+      f_hat(:,:,j) = soft_label(x_an,x(:,:,j),y(:,:,j));
+    end
+    A_an = rand(N_anc,rank,J); 
+    B_an = rand(rank,M,J);
+    Y_an = f_hat; 
+    II=know_ele(f_hat);
+
+    for ii = 1:iteration
+    
+    [A_an,B_an,Y_an,II] = EDM_new(A_an,B_an,Y_an,f_hat,II,c,rank,ii,v);
+
+
+    Y_hat=Y_an;
+    for j=1:J
+      r_mq(:,:,j) = corr_coe(Y_hat(:,:,j));
+      lambda_m(:,:,j)=cost_sen(r_mq(:,:,j));
+    end
+    
+    for j = 1:J
+        
+        delta_u(:,:,j) = grad(x(:,:,j),y(:,:,j),p(:,:,j),u(:,:,j),r_mq(:,:,j),lambda_m(:,:,j),S(j,:),L,U,J,lambda_a,lambda_b,gamma);
+        u(:,:,j) = u(:,:,j)-mu(ii)*delta_u(:,:,j);
+        p(:,:,j) = log_res(x(:,:,j),y(:,:,j),u(:,:,j));
+
+    end
+    u = diff_coop(u,c);
+    end
+    
+    
